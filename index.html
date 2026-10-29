@@ -143,7 +143,6 @@ const DATA = [
   ["🏢","Exam Wise Centre",G+"1uJK84_8Cr5znlcd2vIK21nsL4yJ1vradnuk1fnDfjk8/edit?usp=sharing"],
   ["📄","Important Links",G+"1isLMFmjTXy3N-2ozQsVL4XBK_jxguovfTUiUxamo9zA/edit?usp=sharing"],
   ["📄","Confirmation Link","https://eduhub33.github.io/Exam-Confimation/"]],exams:[
-  ["DVC IV","Jan 2026","2027-01-30","2027-01-31",G+"1_E2P66IxQkzMf_67lQKJDkkgTMW7hxgCzoz08PGfcms/edit?gid=1024023478#gid=1024023478"],
   ["JPL","30th & 31st Oct 2026","2026-10-30","2026-10-31",G+"19Ono9JBqTU_2ASju3r95F0BuENjCet6IS6JMbV63DJA/edit?gid=1030019082#gid=1030019082"],
   ["NIT Agartala","05th & 06th Dec 2026","2026-12-05","2026-12-06",G+"1_E2P66IxQkzMf_67lQKJDkkgTMW7hxgCzoz08PGfcms/edit?gid=1024023478#gid=1024023478"],
   ["SMPCIL_EXECUTIVE","05th Dec 2026","2026-12-05","2026-12-05",G+"1tctySmorhPALZZ2a8bKXmujgUxMg_Dvpv_6V1_BMR48/edit?gid=1030019082#gid=1030019082"],
@@ -186,9 +185,10 @@ const shut=new Set();
 const DAY=864e5;
 const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
 
+function pd(x){const m=String(x).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);return m?new Date(+m[1],+m[2]-1,+m[3]):new Date(NaN)}
 function statusOf(s,e){
-  if(!s) return {k:"none",label:"TBC",n:1e9};
-  const t=today(), st=new Date(s), en=new Date(e||s);
+  if(!s||isNaN(pd(s))) return {k:"none",label:"TBC",n:1e9};
+  const t=today(), st=pd(s), en=isNaN(pd(e||s))?pd(s):pd(e||s);
   const toStart=Math.round((st-t)/DAY);
   if(t>en) return {k:"completed",label:"Completed",n:toStart};
   if(toStart<=3) return {k:"running",label:toStart<=0?"Today / On":"in "+toStart+"d",n:toStart};
@@ -210,9 +210,11 @@ function render(){
   const T=[["active","Active",c.upcoming+c.running],["all","All",c.links],["upcoming","Upcoming",c.upcoming],["running","Running",c.running],["completed","Completed",c.completed]];
   $("tabs").innerHTML=T.map(t=>`<button class="tab ${tab===t[0]?"on":""}" data-t="${t[0]}">${t[1]}<i>${t[2]}</i></button>`).join("");
 
-  const nxt=all.flatMap(a=>a.ex).filter(e=>e.st.k==="running"||e.st.k==="upcoming").sort((a,b)=>a.st.n-b.st.n).slice(0,4);
+  const pool=all.flatMap(a=>a.ex).filter(e=>e.st.k==="running"||e.st.k==="upcoming").sort((a,b)=>a.st.n-b.st.n);
+  const soon=pool.filter(e=>e.st.n<=30);
+  const nxt=soon.length>=3?soon:pool.slice(0,3);
   $("next").style.display=nxt.length?"block":"none";
-  $("next").innerHTML='<h3>Next up</h3><div class="nl">'+nxt.map(e=>`<a href="${e.url}" target="_blank" rel="noopener"><span class="bd ${e.st.k}">${e.st.label}</span>${e.name}</a>`).join("")+"</div>";
+  $("next").innerHTML='<h3>Next up ('+nxt.length+' of '+pool.length+')</h3><div class="nl">'+nxt.map(e=>`<a href="${e.url}" target="_blank" rel="noopener"><span class="bd ${e.st.k}">${e.st.label}</span>${e.name}</a>`).join("")+"</div>";
 
   const showChips=tab==="all"||tab==="active";
   let out="",shown=0;
