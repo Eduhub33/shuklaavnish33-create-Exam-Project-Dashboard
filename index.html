@@ -213,7 +213,7 @@ function render(){
 
   const pool=all.flatMap(a=>a.ex).filter(e=>e.st.k==="running"||e.st.k==="upcoming").sort((a,b)=>a.st.n-b.st.n);
   const soon=pool.filter(e=>e.st.n<=60);
-  const nxt=soon.length>=3?soon:pool.slice(0,3);
+  const nxt=soon.length>=5?soon:pool.slice(0,5);
   $("next").style.display=nxt.length?"block":"none";
   $("next").innerHTML='<h3>Next up ('+nxt.length+' of '+pool.length+')</h3><div class="nl">'+nxt.map(e=>`<a href="${e.url}" target="_blank" rel="noopener"><span class="bd ${e.st.k}">${e.st.label}</span>${e.name}</a>`).join("")+"</div>";
 
